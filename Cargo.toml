@@ -1,5 +1,5 @@
 [package]
-name = "openfoam_analyzer"
+name = "foamides"
 version = "0.1.0"
 edition = "2021"
 

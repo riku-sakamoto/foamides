@@ -7,14 +7,15 @@ mod boundary_file;
 mod utils;
 
 fn main() {
-    let path = "data/demo.txt";
+    // let path = "data/demo.txt";
     // let path = "data/openfoam-OpenFOAM-v2012-tutorials-incompressible-simpleFoam-pitzDaily/tutorials/incompressible/simpleFoam/pitzDaily/0/U";
+    let path = "data/openfoam/v2012/tutorials/incompressible/simpleFoam/pitzDaily/0/p";
     let contents = utils::read_file_contents(path);
 
     let file_content = contents.unwrap();
     let file_content = parsers::common::trim_comments(&file_content);
 
-    let result = boundary_file::parse_boundary_file(&file_content, "U");
+    let result = boundary_file::parse_boundary_file(&file_content, "p");
 
     println!("target: {}", result.target);
 
