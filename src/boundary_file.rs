@@ -4,37 +4,37 @@ use nom::multi::many0;
 use nom::sequence::tuple;
 use nom::IResult;
 
-#[path = "./parsers"]
-mod parsers {
-    pub mod boundary;
-    pub mod common;
-    pub mod dimensions;
-    pub mod foamfile;
-    pub mod header;
-}
-
-#[path = "./utils.rs"]
-mod utils;
-
-use self::parsers::boundary::BoundaryField;
-use self::parsers::foamfile::FoamFile;
 use itertools::Itertools;
+
+use crate::parsers::boundary;
+use crate::parsers::common;
+use crate::parsers::dimensions;
+use crate::parsers::foamfile;
+use crate::parsers::header;
 
 pub struct BoundaryHolder {
     pub target: String,
-    pub boundary_field: BoundaryField,
-    pub dimensions: parsers::dimensions::Dimensions,
+    pub boundary_field: boundary::BoundaryField,
+    pub dimensions: dimensions::Dimensions,
     pub others: HashMap<String, String>,
 }
 
 fn _parse_boundary_file(
     input: &str,
-) -> IResult<&str, (&str, FoamFile, Vec<(&str, &str)>, BoundaryField)> {
+) -> IResult<
+    &str,
+    (
+        &str,
+        foamfile::FoamFile,
+        Vec<(&str, &str)>,
+        boundary::BoundaryField,
+    ),
+> {
     let (input, (header, foamfile, others, boundary_field)) = tuple((
-        parsers::header::parse_header,
-        parsers::foamfile::parse_foamfile,
-        many0(parsers::common::parse_key_value),
-        parsers::boundary::parse_boundary_field,
+        header::parse_header,
+        foamfile::parse_foamfile,
+        many0(common::parse_key_value),
+        boundary::parse_boundary_field,
     ))(input)?;
 
     Ok((input, (header, foamfile, others, boundary_field)))
@@ -49,7 +49,7 @@ pub fn parse_boundary_file(input: &str, target_name: &str) -> BoundaryHolder {
         .filter(|v| v.0 == "dimensions")
         .exactly_one()
         .unwrap();
-    let dims = parsers::dimensions::parse_dimensions(strdim.1);
+    let dims = dimensions::parse_dimensions(strdim.1);
 
     BoundaryHolder {
         target: target_name.to_string(),
