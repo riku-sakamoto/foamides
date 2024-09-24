@@ -23,7 +23,7 @@ fn test_u_boundary() {
     );
     assert_eq!(
         result.boundary_field.boundaries.get("inlet").unwrap().value,
-        Some("10 0 0".to_string())
+        Some("(10 0 0)".to_string())
     );
     assert_eq!(
         result
@@ -36,44 +36,59 @@ fn test_u_boundary() {
     )
 }
 
-// #[test]
-// fn test_p_boundary() {
-//     let path = "data/openfoam/v2012/tutorials/incompressible/simpleFoam/pitzDaily/0/p";
-//     let contents = foamides::utils::read_file_contents(path);
+#[test]
+fn test_p_boundary() {
+    let path = "data/openfoam/v2012/tutorials/incompressible/simpleFoam/pitzDaily/0/p";
+    let contents = foamides::utils::read_file_contents(path);
 
-//     let file_content = contents.unwrap();
-//     let file_content = foamides::parsers::common::trim_comments(&file_content);
+    let file_content = contents.unwrap();
+    let file_content = foamides::parsers::common::trim_comments(&file_content);
 
-//     let result = foamides::boundary_file::parse_boundary_file(&file_content, "p");
+    let result = foamides::boundary_file::parse_boundary_file(&file_content, "p");
 
-//     assert_eq!(result.target, "p");
+    assert_eq!(result.target, "p");
 
-//     assert_eq!(
-//         result
-//             .boundary_field
-//             .boundaries
-//             .get("outlet")
-//             .unwrap()
-//             .boundary_type,
-//         "fixedValue"
-//     );
-//     // assert_eq!(
-//     //     result
-//     //         .boundary_field
-//     //         .boundaries
-//     //         .get("outlet")
-//     //         .unwrap()
-//     //         .value,
-//     //     Some("0".to_string())
-//     // );
+    assert_eq!(
+        result
+            .boundary_field
+            .boundaries
+            .get("outlet")
+            .unwrap()
+            .boundary_type,
+        "fixedValue"
+    );
+    assert_eq!(
+        result
+            .boundary_field
+            .boundaries
+            .get("outlet")
+            .unwrap()
+            .value,
+        Some("0".to_string())
+    );
 
-//     assert_eq!(
-//         result
-//             .boundary_field
-//             .boundaries
-//             .get("inlet")
-//             .unwrap()
-//             .boundary_type,
-//         "zeroGradient"
-//     );
-// }
+    assert_eq!(
+        result
+            .boundary_field
+            .boundaries
+            .get("inlet")
+            .unwrap()
+            .boundary_type,
+        "zeroGradient"
+    );
+}
+
+#[test]
+fn test_k_boundary() {
+    let path = "data/openfoam/v2012/tutorials/incompressible/simpleFoam/pitzDaily/0/k";
+    let contents = foamides::utils::read_file_contents(path);
+
+    let file_content = contents.unwrap();
+    let file_content = foamides::parsers::common::trim_comments(&file_content);
+
+    let result = foamides::boundary_file::parse_boundary_file(&file_content, "k");
+
+    let uppper_wall = result.boundary_field.boundaries.get("upperWall").unwrap();
+    assert_eq!(uppper_wall.boundary_type, "kqRWallFunction");
+    assert_eq!(uppper_wall.value, Some("0.375".to_string()));
+}

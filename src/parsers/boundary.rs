@@ -1,6 +1,6 @@
 use nom::bytes::complete::{tag, take_until};
 use nom::character::complete::{alpha1, multispace0, space1};
-use nom::combinator::map;
+use nom::combinator::{map, rest};
 use nom::multi::many0;
 use nom::sequence::{delimited, tuple};
 use nom::IResult;
@@ -33,12 +33,7 @@ fn parse_uniform_value(input: &str) -> IResult<&str, &str> {
     }
 
     let (_, input) = delimited(tag("value"), take_until(";"), tag(";"))(input)?;
-    let parser = tuple((
-        multispace0,
-        tag("uniform"),
-        space1,
-        delimited(tag("("), take_until(")"), tag(")")),
-    ));
+    let parser = tuple((multispace0, tag("uniform"), space1, rest));
     map(parser, |(_, _, _, v)| v)(input)
 }
 
@@ -59,7 +54,7 @@ fn parse_boundary_condition(input: &str) -> IResult<&str, (String, BoundaryCondi
             boundary_name.to_string(),
             BoundaryCondition {
                 boundary_type: boundary_type.to_string(),
-                value: Some(uniform_value.to_string()),
+                value: Some(uniform_value.trim().to_string()),
             },
         ),
     ))
@@ -81,4 +76,71 @@ pub fn parse_boundary_field(input: &str) -> IResult<&str, BoundaryField> {
             boundaries: boundaries_map,
         },
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_boundary_field;
+
+    #[test]
+    fn test_parse_uniform_vec_condition() {
+        let example = "boundaryField
+            {
+                inlet
+                {
+                    type            fixedValue;
+                    value           uniform (10 0 0);
+                }
+            }";
+
+        let result = parse_boundary_field(&example);
+        let result = result.unwrap();
+        let bc = result.1.boundaries.get("inlet").unwrap();
+        assert_eq!(bc.value, Some("(10 0 0)".to_string()));
+    }
+
+    #[test]
+    fn test_parse_uniform_single_condition() {
+        let example = "boundaryField
+            {
+                inlet
+                {
+                    type            fixedValue;
+                    value           uniform 0;
+                }
+            }";
+        let result = parse_boundary_field(&example);
+        let result = result.unwrap();
+        let bc = result.1.boundaries.get("inlet").unwrap();
+        assert_eq!(bc.value, Some("0".to_string()));
+    }
+
+    #[test]
+    fn test_parse_non_fixed_condition() {
+        let example = "boundaryField
+            {
+                lowerWall
+                {
+                    type            zeroGradient;
+                }
+
+                frontAndBack
+                {
+                    type            empty;
+                }
+            }";
+
+        let result = parse_boundary_field(&example);
+        let result = result.unwrap();
+        let boundaries = result.1.boundaries;
+
+        assert_eq!(
+            boundaries.get("lowerWall").unwrap().boundary_type,
+            "zeroGradient"
+        );
+        assert_eq!(
+            boundaries.get("frontAndBack").unwrap().boundary_type,
+            "empty"
+        );
+    }
 }

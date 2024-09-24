@@ -16,13 +16,13 @@ mod parsers {
 #[path = "./utils.rs"]
 mod utils;
 
+use self::parsers::boundary::BoundaryField;
+use self::parsers::foamfile::FoamFile;
 use itertools::Itertools;
-use parsers::boundary::BoundaryField;
-use parsers::foamfile::FoamFile;
 
 pub struct BoundaryHolder {
     pub target: String,
-    pub boundary_field: parsers::boundary::BoundaryField,
+    pub boundary_field: BoundaryField,
     pub dimensions: parsers::dimensions::Dimensions,
     pub others: HashMap<String, String>,
 }
